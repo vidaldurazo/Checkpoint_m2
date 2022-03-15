@@ -1,5 +1,5 @@
-#setwd("C:/Users/user/Google Drive/Clases/BEDU/Data science/2 - R/CHECKPOINT/WD")
-setwd("C:/Users/mktic/Documents/Repositorios/Checkpoint_m2/")
+setwd("C:/Users/user/Documents/repositorios/Checkpoint_m2")
+#setwd("C:/Users/mktic/Documents/Repositorios/Checkpoint_m2/")
 
 RAWDATA <- read.csv("./www/SeoulBikeData.csv")
 View(RAWDATA) #vemos la tabla del dataset
@@ -24,7 +24,8 @@ summary(DATA$Date)#ahora el summary nos indica que este dataset se generó desde
 
 
 #a continuación podemos ver el desarrollo de rentas de bicicletas en el tiempo
-plot(x=DATA$Date, y = DATA$Rented.Bike.Count, ylab = "Bicicletas rentadas diarias", xlab = "Tiempo", main = "Cantidad de bicicletas rentadas en el tiempo", 
+plot(x=DATA$Date, y = DATA$Rented.Bike.Count, ylab = "Bicicletas rentadas diarias", 
+     xlab = "Tiempo", main = "Cantidad de bicicletas rentadas en el tiempo", 
      sub = "desde el 1/12/2017 al 30/11/2018")
 
 #
@@ -44,7 +45,7 @@ ggplot(DATA, aes(x=Hour, y = Rented.Bike.Count)) +
   facet_wrap("Seasons")
 
 #a continuación haremos una prueba gráfica para verificar la calidad de la información, comparando la radiación solar y la temperatura diaria en las diferentes estaciones anuales para demostrar que los datos son coherentes
-#acá podemos observar una clara 
+
 ggplot(DATA, aes(x=Temperature..C., y = log(Solar.Radiation..MJ.m2.))) + #se agregó logaritmo para visualizar la dispersión
   labs(x = "Temperatura °C", y = "Log de Radiación Solar MJm2",
        title ="Temperatura y radiación solar en las estaciones del año",
@@ -123,7 +124,7 @@ ggplot(DATA1, aes(x=Hour, y = Rented.Bike.Count, fill = temp)) +
 #en este apartado, creamos un mirror del dataset pero solo mantenemos variables contínuas para realizarle rápidamente una revisión de correlaciones de pearson
 DATAnumeric <- select(DATA, -Date, -Seasons,  -Holiday, -Functioning.Day)
 attach(DATAnumeric)
-pairs(DATAnumeric) #por lo visto no se puede apreciar ninguna variable con una correlación visible, salvo por Temperature..C. y Dew.point.temperature..C. (punto de condensación) "
+pairs(DATAnumeric) # por lo visto no se puede apreciar ninguna variable con una correlación visible, salvo por Temperature..C. y Dew.point.temperature..C. (punto de condensación) "
 CORtable <- cor(DATAnumeric)
 View(CORtable)
 
@@ -144,8 +145,8 @@ View(DATA1sillueve)
 str(DATA)
 
 #Revisamos normalidad de ambas muestras
-hist((DATA1nollueve$Rented.Bike.Count));
-hist((DATA1sillueve$Rented.Bike.Count))
+hist(DATA1nollueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta^1/3 en días normales", xlab = "Uso de bicicleta", ylab="Frecuencia");
+hist(DATA1sillueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta^1/3 en días lluviosos", xlab = "Uso de bicicleta", ylab="Frecuencia");
 
 #aplicamos raíz cúbica para normalizar el histograma
 hist((DATA1nollueve$Rented.Bike.Count)^(1/3));
