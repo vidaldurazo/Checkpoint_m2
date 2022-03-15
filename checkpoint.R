@@ -1,10 +1,14 @@
-setwd("C:/Users/user/Google Drive/Clases/BEDU/Data science/2 - R/CHECKPOINT/WD")
-RAWDATA <- read.csv("SeoulBikeData.csv")
+#setwd("C:/Users/user/Google Drive/Clases/BEDU/Data science/2 - R/CHECKPOINT/WD")
+setwd("C:/Users/mktic/Documents/Repositorios/Checkpoint_m2/")
+
+RAWDATA <- read.csv("./www/SeoulBikeData.csv")
 View(RAWDATA) #vemos la tabla del dataset
+
 # dataset descargado de: https://www.kaggle.com/saurabhshahane/seoul-bike-sharing-demand-prediction
 # Este dataset agrupa información diaria de condiciones de tiempo atmosférico de renta de bicicletas e intenta conocer la incidencia que tiene las condiciones del tiempo atmosférico en la demanda del servicio 
 
 #La estructura del dataset es la siguiente:
+
 str(RAWDATA) #la variable fecha no se eencuentra en el formato correcto para que sean interpretadas por R
 dim(RAWDATA) #el dataset cuenta con 8760 observaciones en la muestra y 14 variables
 tail(RAWDATA)
@@ -43,8 +47,7 @@ ggplot(DATA, aes(x=Hour, y = Rented.Bike.Count)) +
 #acá podemos observar una clara 
 ggplot(DATA, aes(x=Temperature..C., y = log(Solar.Radiation..MJ.m2.))) + #se agregó logaritmo para visualizar la dispersión
   labs(x = "Temperatura °C", y = "Log de Radiación Solar MJm2",
-       title ="Bicicletas rentadas en diferentes estaciones del año",
-       subtitle = "renta de bicicletas por hora",
+       title ="Temperatura y radiación solar en las estaciones del año",
        caption = "fuente: https://www.kaggle.com/hardikjain10/seoul-bike-rented",
        alt = "Add alt text to the plot") +
   geom_bin2d(binwidth = c(1, 0.1)) +
@@ -53,7 +56,7 @@ ggplot(DATA, aes(x=Temperature..C., y = log(Solar.Radiation..MJ.m2.))) + #se agr
   facet_wrap("Seasons")
   
 
-# como es de esperarse, las temperaturas más altas se ecuentran en verano y las más bajas en invierto, otoño y primavera tienen temperaturas similares
+# como es de esperarse, las temperaturas más altas se ecuentran en verano y las más bajas en invierno, otoño y primavera tienen temperaturas similares
 # también podemos observar cierta relación de la variable log(Solar.Radiation..MJ.m2.) con la temperatura
 
 #verificamos que no exista ningún dato de renta de bicicleta en los días no laborados
@@ -81,7 +84,7 @@ DATA1 <- mutate(DATA1, temp = as.factor(temp))
 
 str(DATA1)
 
-#graficamos con los agrupamientos anteriores
+#graficamos considerando los agrupamientos anteriores
 
 
 #en esta gráfica podemos observar una diferencia notable entre la precipitación y el uso del servicio
@@ -124,23 +127,96 @@ pairs(DATAnumeric) #por lo visto no se puede apreciar ninguna variable con una c
 CORtable <- cor(DATAnumeric)
 View(CORtable)
 
+
+#de los datos anteriores podemos sacar la siguiente hipótesis
+#H0 : X1 = X2
+#H1 : X1 ≠ X2
+
+View(DATA1)
+#dos dataset filtrados: llueve y no llueve: 
+
+DATA1nollueve <- filter(DATA1, llueve == "no llueve")
+View(DATA1nollueve)
+
+DATA1sillueve <- filter(DATA1, llueve == "llueve")
+View(DATA1sillueve)
+
 str(DATA)
+
+#Revisamos normalidad de ambas muestras
+hist((DATA1nollueve$Rented.Bike.Count));
+hist((DATA1sillueve$Rented.Bike.Count))
+
+#aplicamos raíz cúbica para normalizar el histograma
+hist((DATA1nollueve$Rented.Bike.Count)^(1/3));
+hist(sqrt(DATA1sillueve$Rented.Bike.Count)^(1/3))
+
+#Como visualmente los histogramas aparentan normalidad, se procede a hacer la sustitución de variable.names()
+DATA1nollueve$Rented.Bike.Count <- DATA1nollueve$Rented.Bike.Count^(1/3)
+DATA1sillueve$Rented.Bike.Count <- DATA1sillueve$Rented.Bike.Count^(1/3)
+hist(DATA1nollueve$Rented.Bike.Count)
+
+#se establecen las muestras para la prueba de hipótesis:
+m1 <- DATA1nollueve$Rented.Bike.Count
+n1 <- length(DATA1nollueve$Rented.Bike.Count)
+m2 <- DATA1sillueve$Rented.Bike.Count
+n2 <- length(DATA1sillueve$Rented.Bike.Count)
+
+#obtenemos la función del estadístico z
+z0 <- (mean(m1)-mean(m2))/sqrt(var(m1)/n1 + var(m2)/n2)
+z0
+
+#Se obtiene la región de rechazo
+(z.025 <- qnorm(p = 0.025, lower.tail = FALSE))
+z.025
+
+(z0 < -z.025) | (z0 > z.025)
+
+#La prueba nos hace Rechazar la hipótesis nula(H0) y no tener elementos para rechazar la hipótesis alternativa(H1)
+#Existe diferencia clara entre las dos muestras, por lo tanto se infiere que la demanda de renta de bicicletas es mayor en días soleados que en días lluviosos
+
 #cambiamos las variables categóricas a "factors"
 DATA <- mutate(DATA, Seasons = as.factor(Seasons))
 DATA <- mutate(DATA, Holiday = as.factor(Holiday))
 DATA <- mutate(DATA, Functioning.Day = as.factor(Functioning.Day))
 
+detach(DATAnumeric)
 #procedemos a realizar la regresión lineal
-attach(DATA)
+str(DATA1)
+attach(DATA1)
 DATAreg1 <- lm(Rented.Bike.Count~Hour+Temperature..C.+Humidity...+Wind.speed..m.s.+Visibility..10m.+Dew.point.temperature..C.+Solar.Radiation..MJ.m2.+Rainfall.mm.+Snowfall..cm.+Seasons+Holiday)
 summary(DATAreg1)
 #se observa que el pvalue implica que el modelo es muy significativo, sin embargo la Rcuadrada nos da 0.4876
 #las variables de visibilidad, la temperatura de condensación y la velocidad del viento tienen bajo pvalue, por lo que se hace una segunda regresión esperand un aumento del Rcuadrada
-DATAreg2 <- lm(Rented.Bike.Count~Hour+Temperature..C.+Humidity...+Solar.Radiation..MJ.m2.+Rainfall.mm.+Snowfall..cm.+Seasons+Holiday)
+DATAreg2 <- lm(Rented.Bike.Count~Hour+Temperature..C.+Humidity...+Solar.Radiation..MJ.m2.+Rainfall.mm.+Snowfall..cm.+Holiday)
 summary(DATAreg2)
 
-#a pesar de quitar las variables con menor pvalue, la rcuadrada no mejoró, mas bien, disminuyó
-#por lo tanto se procede a hacer un SVM para generar el mejor modelo
+#a pesar de quitar las variables con menor pvalue, la rcuadrada no mejoró
+
+detach(DATA1)
+#se intenta normalizar la variable dependiente usando la raíz cúbica en un dataset mirrior, como se realizó en la prueba de hipótesis
+DATA2 <- DATA1
+DATA2$Rented.Bike.Count <- DATA1$Rented.Bike.Count^(1/3)
+attach(DATA2)
+
+#sacamos una tercera regresión con la variable y normalizada:
+DATAreg3 <- lm(Rented.Bike.Count~Hour+Temperature..C.+Humidity...+Wind.speed..m.s.+Visibility..10m.+Dew.point.temperature..C.+Solar.Radiation..MJ.m2.+Rainfall.mm.+Snowfall..cm.+Seasons+Holiday)
+summary(DATAreg3)
+  
+#hacemos ahora una cuarta regresión eliminando las variables con alto pvalue
+DATAreg4 <- lm(Rented.Bike.Count~Hour+Humidity...+Dew.point.temperature..C.+Solar.Radiation..MJ.m2.+Rainfall.mm.+Seasons+Holiday)
+summary(DATAreg4)
+detach(DATA2)
+
+reporte <- rbind(c("Regresión 1","Regresión 2","Regresión 3","Regresión 4"),c("dependiente original, completa", "dependiente original, reducida", "dependiente^(1/3), completa", "dependiente^(1/3), reducida" ),c(summary(DATAreg1)$r.squared, summary(DATAreg2)$r.squared, summary(DATAreg3)$r.squared, summary(DATAreg4)$r.squared))
+reporte
+
+#conclusión, la mejor regresión obtenida con la información fue la primera de todas ya que presenta un coeficiente de determinación mayor (0.4875), aún así, dicho coeficiente es muy bajo para asegurar una buena predicción de este modelo
+summary(DATAreg1)
+plot(DATAreg1)
+
+
+# TODO LO QUE ESTÁ A CONTINUACIÓN NO ES ÚTIL, ya que se realizó una SVM pero en este caso, nuestra variable dependiente NO es binomial
 
 
 #primero creamos una muestra de un cuarto de los datos actuales llamada "train"
