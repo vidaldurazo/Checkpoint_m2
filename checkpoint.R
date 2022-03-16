@@ -112,7 +112,6 @@ ggplot(DATA1, aes(x=Hour, y = Rented.Bike.Count, fill = radiación)) +
   labs(x = "Horas", y = "Bicicletas rentadas",
        title ="Bicicletas rentadas cuando hay o no radiación solar",
        caption = "fuente: https://www.kaggle.com/hardikjain10/seoul-bike-rented") 
-
 #también se aprecia la afectación del frío a la variable dependiente
 ggplot(DATA1, aes(x=Hour, y = Rented.Bike.Count, fill = temp)) + 
   scale_fill_manual(values = c("green", "orange","blue")) +
@@ -145,12 +144,12 @@ View(DATA1sillueve)
 str(DATA)
 
 #Revisamos normalidad de ambas muestras
-hist(DATA1nollueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta^1/3 en días normales", xlab = "Uso de bicicleta", ylab="Frecuencia");
-hist(DATA1sillueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta^1/3 en días lluviosos", xlab = "Uso de bicicleta", ylab="Frecuencia");
+hist(DATA1nollueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta en días normales", xlab = "Uso de bicicleta", ylab="Frecuencia");
+hist(DATA1sillueve$Rented.Bike.Count, main = "Histograma de uso de bicicleta en días lluviosos", xlab = "Uso de bicicleta", ylab="Frecuencia");
 
 #aplicamos raíz cúbica para normalizar el histograma
-hist((DATA1nollueve$Rented.Bike.Count)^(1/3));
-hist(sqrt(DATA1sillueve$Rented.Bike.Count)^(1/3))
+hist((DATA1nollueve$Rented.Bike.Count)^(1/3),main = "Histograma de uso de bicicleta^1/3 en días normales", xlab = "Uso de bicicleta", ylab="Frecuencia");
+hist((DATA1sillueve$Rented.Bike.Count)^(1/3), main = "Histograma de uso de bicicleta^1/3 en días lluviosos", xlab = "Uso de bicicleta", ylab="Frecuencia");
 
 #Como visualmente los histogramas aparentan normalidad, se procede a hacer la sustitución de variable.names()
 DATA1nollueve$Rented.Bike.Count <- DATA1nollueve$Rented.Bike.Count^(1/3)
