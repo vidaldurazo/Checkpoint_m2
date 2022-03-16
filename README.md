@@ -1,6 +1,6 @@
 _Checkpoint_
   ## ENTREGA DE PROYECTO: 
-  **`Demanda de renta de bicicletas en Seúl, comparado con condiciones climatológicas`**
+  ## **`Demanda de renta de bicicletas en Seúl, comparado con condiciones climatológicas`**
   #### Programación y estadística con R
   
   15/03/2022
